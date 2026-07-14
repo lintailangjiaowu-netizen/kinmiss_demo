@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motion Demo | ミス近畿大学2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#5B6BAE; --pink:#D988A8; --text:#1A1A2E;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:"Noto Sans JP",sans-serif;
+    color:#fff; overflow:hidden; background:#fff;
+  }
+
+  .stage{position:relative; width:100%; height:100vh; overflow:hidden;}
+
+  /* ---- Hero (revealed under the loader) ---- */
+  .hero{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+    background:linear-gradient(150deg,#5B6BAE 0%,#8E77B4 48%,#D988A8 100%);
+    padding:0 28px;
+  }
+  .hero::before,.hero::after{
+    content:""; position:absolute; border-radius:50%;
+    background:radial-gradient(circle,rgba(255,255,255,.26),transparent 70%);
+    pointer-events:none;
+  }
+  .hero::before{width:340px;height:340px;top:-90px;right:-80px;}
+  .hero::after{width:320px;height:320px;bottom:-100px;left:-70px;}
+
+  /* small logo badge that settles at the top of the hero */
+  .hero__logo{
+    position:absolute; top:24px; left:50%;
+    width:64px; height:64px; border-radius:50%;
+    background:#fff; padding:9px;
+    box-shadow:0 8px 24px rgba(26,26,46,.18);
+    opacity:0; transform:translateX(-50%) translateY(16px);
+  }
+  .hero__logo img{width:100%;height:100%;object-fit:contain;display:block;}
+
+  .hero__sub{
+    font-family:"Cormorant Garamond",serif;
+    letter-spacing:.28em; text-transform:uppercase;
+    font-size:.9rem; opacity:0; transform:translateY(16px);
+  }
+  .hero__title{
+    font-size:clamp(2rem,9vw,3.4rem); font-weight:700;
+    letter-spacing:.04em; line-height:1.3; margin:18px 0;
+    white-space:nowrap; opacity:0; transform:translateY(24px);
+    text-shadow:0 4px 24px rgba(26,26,46,.2);
+  }
+  .hero__year{
+    font-family:"Cormorant Garamond",serif; letter-spacing:.22em;
+    font-size:.85rem; opacity:0; transform:translateY(16px);
+  }
+  .hero__btn{
+    margin-top:34px; padding:13px 34px; border-radius:999px;
+    background:rgba(255,255,255,.16); border:1.5px solid rgba(255,255,255,.7);
+    color:#fff; font-size:.9rem; font-weight:600; letter-spacing:.04em;
+    -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+    opacity:0; transform:translateY(16px);
+  }
+
+  /* ---- Loader overlay (white) ---- */
+  .loader{
+    position:absolute; inset:0; z-index:10;
+    display:flex; align-items:center; justify-content:center;
+    background:#fff;
+  }
+
+  /* ---- Title key-visual (phase 1) ---- */
+  .title{
+    position:absolute; inset:0; z-index:12; opacity:0; overflow:hidden;
+    background:#EDE9F6; will-change:opacity,filter,transform;
+  }
+  .title img{ width:100%; height:100%; object-fit:cover; display:block; }
+  /* soft light bloom for a fragile, glowing feel */
+  .title::after{
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+    background:radial-gradient(circle at 50% 46%, rgba(255,255,255,.22), transparent 62%);
+    mix-blend-mode:screen;
+  }
+  /* "ぽわーん" — a soft halo of light that gently blooms outward */
+  .title__glow{
+    position:absolute; left:50%; top:46%; z-index:2; pointer-events:none;
+    width:78vmax; height:78vmax; border-radius:50%;
+    transform:translate(-50%,-50%) scale(.35); opacity:0;
+    background:radial-gradient(circle, rgba(255,255,255,.6), rgba(217,136,168,.14) 42%, transparent 66%);
+    mix-blend-mode:screen; filter:blur(6px);
+  }
+  .stage.play .title__glow{animation:poff 3.6s ease-out .6s forwards;}
+  @keyframes poff{
+    0%{opacity:0; transform:translate(-50%,-50%) scale(.35);}
+    38%{opacity:.7; transform:translate(-50%,-50%) scale(.95);}
+    100%{opacity:0; transform:translate(-50%,-50%) scale(1.55);}
+  }
+  /* countdown key-visual — whole image visible, no cropping */
+  .emblem{
+    position:absolute; inset:0; overflow:hidden; opacity:0;
+    background:#FBFCFE;                 /* matches the image's light edges = seamless */
+    will-change:opacity,filter;
+  }
+  .emblem img{
+    width:100%; height:100%;
+    object-fit:contain;                 /* show the entire image, auto-fit any screen */
+    display:block; transform:scale(1.03);
+  }
+
+  /* ===== PLAY states (timeline) — slow, dreamy "bloom in" ===== */
+  /* 1) Title key-visual: bleeds in from a soft haze, drifts, melts away */
+  .stage.play .title{animation:titleSeq 5.6s cubic-bezier(.4,0,.2,1) .5s forwards;}
+  /* 2) Countdown key-visual blooms in (from ~5.8s) */
+  .stage.play .emblem{animation:kvIn 2.8s ease-out 5.8s forwards;}
+  .stage.play .emblem img{animation:kvZoom 6.4s ease-out 5.8s forwards;}   /* very gentle drift */
+  /* 3) White loader dissolves → hero (from ~8.8s) */
+  .stage.play .loader{animation:loaderOut 2.2s ease forwards; animation-delay:8.8s;}
+
+  .stage.play .hero__sub{animation:fadeUpSoft 1.6s ease-out 9.1s forwards;}
+  .stage.play .hero__title{animation:fadeUpSoft 1.7s ease-out 9.4s forwards;}
+  .stage.play .hero__year{animation:fadeUpSoft 1.6s ease-out 9.8s forwards;}
+  .stage.play .hero__btn{animation:fadeUpSoft 1.6s ease-out 10.1s forwards;}
+
+  /* blur → focus, never fully opaque (slightly translucent = fragile) */
+  @keyframes titleSeq{
+    0%{opacity:0; filter:blur(30px) brightness(1.1); transform:scale(1.09);}
+    30%{opacity:.9; filter:blur(0) brightness(1.02); transform:scale(1);}      /* comes into focus */
+    64%{opacity:.9; filter:blur(0) brightness(1.02); transform:scale(1.02);}   /* slow drift while holding */
+    100%{opacity:0; filter:blur(20px) brightness(1.07); transform:scale(1.05);}
+  }
+  @keyframes kvIn{
+    0%{opacity:0; filter:blur(20px);}
+    100%{opacity:.95; filter:blur(0);}
+  }
+  @keyframes kvZoom{ 0%{transform:scale(1.06);} 100%{transform:scale(1);} }
+  @keyframes loaderOut{0%{opacity:1;}100%{opacity:0; visibility:hidden;}}
+  @keyframes fadeUpSoft{
+    0%{opacity:0; filter:blur(8px); transform:translateY(22px);}
+    100%{opacity:1; filter:blur(0); transform:translateY(0);}
+  }
+  @keyframes fadeUp{to{opacity:1; transform:translateY(0);}}
+  @keyframes fadeUpLogo{to{opacity:1; transform:translateX(-50%) translateY(0);}}
+
+  .particle{
+    position:absolute; border-radius:50%;
+    background:rgba(255,255,255,.8); opacity:0; z-index:2; pointer-events:none;
+    filter:blur(.6px);
+  }
+  .stage.play .particle{animation:floatUp linear forwards;}
+  @keyframes floatUp{
+    0%{opacity:0; transform:translateY(40px) scale(.5);}
+    18%{opacity:.5;}
+    60%{opacity:.5;}
+    100%{opacity:0; transform:translateY(-170px) scale(1);}
+  }
+
+  .controls{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    z-index:50; display:flex; gap:10px;
+  }
+  .controls button{
+    font-family:"Noto Sans JP"; font-size:.8rem; font-weight:600;
+    padding:10px 20px; border-radius:999px; border:none; cursor:pointer;
+    background:rgba(26,26,46,.72); color:#fff; letter-spacing:.04em;
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  }
+  .controls button:hover{background:rgba(26,26,46,.9);}
+  .hint{
+    position:fixed; top:14px; left:50%; transform:translateX(-50%);
+    z-index:50; font-size:.72rem; letter-spacing:.05em;
+    color:rgba(26,26,46,.55); background:rgba(255,255,255,.7);
+    padding:6px 14px; border-radius:999px;
+    -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .stage.play *{animation-duration:.001s !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hint">オープニング演出デモ</div>
+
+<div class="stage" id="stage">
+
+  <!-- Hero underneath -->
+  <div class="hero">
+    <p class="hero__sub">Miss Kindai University 2026</p>
+    <h1 class="hero__title">魅せる、私らしさ。</h1>
+    <p class="hero__year">— THE 2026 OFFICIAL CONTEST —</p>
+    <button class="hero__btn">ファイナリストを見る</button>
+  </div>
+
+  <!-- Loader overlay -->
+  <div class="loader">
+    <!-- phase 1: title key-visual -->
+    <div class="title">
+      <img src="opening_title.png" alt="KINDAI MISS CAMPUS CONTEST 2026 魅せる、私らしさ。">
+      <div class="title__glow"></div>
+    </div>
+    <!-- phase 2: countdown key-visual -->
+    <div class="emblem">
+      <img src="countdown.png" alt="ファイナリスト発表まで 10 Days Left 2026.09.14">
+    </div>
+  </div>
+
+</div>
+
+<div class="controls">
+  <button id="replay">▶ もう一度再生</button>
+</div>
+
+<script>
+  const stage = document.getElementById('stage');
+
+  function spawnParticles(){
+    stage.querySelectorAll('.particle').forEach(p=>p.remove());
+    for(let i=0;i<24;i++){
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = 2 + Math.random()*5;               // smaller, daintier
+      p.style.width = p.style.height = size+'px';
+      p.style.left = (4 + Math.random()*92)+'%';
+      p.style.top  = (35 + Math.random()*60)+'%';
+      p.style.animationDuration = (6 + Math.random()*5)+'s';   // slower drift
+      p.style.animationDelay = (9.3 + Math.random()*2.5)+'s';  // during the hero phase
+      stage.appendChild(p);
+    }
+  }
+
+  function play(){
+    stage.classList.remove('play');
+    void stage.offsetWidth; // restart animations
+    spawnParticles();
+    stage.classList.add('play');
+  }
+
+  document.getElementById('replay').addEventListener('click', play);
+  window.addEventListener('load', play);
+</script>
+</body>
+</html>
