@@ -36,16 +36,6 @@
   .hero::before{width:340px;height:340px;top:-90px;right:-80px;}
   .hero::after{width:320px;height:320px;bottom:-100px;left:-70px;}
 
-  /* small logo badge that settles at the top of the hero */
-  .hero__logo{
-    position:absolute; top:24px; left:50%;
-    width:64px; height:64px; border-radius:50%;
-    background:#fff; padding:9px;
-    box-shadow:0 8px 24px rgba(26,26,46,.18);
-    opacity:0; transform:translateX(-50%) translateY(16px);
-  }
-  .hero__logo img{width:100%;height:100%;object-fit:contain;display:block;}
-
   .hero__sub{
     font-family:"Cormorant Garamond",serif;
     letter-spacing:.28em; text-transform:uppercase;
@@ -79,22 +69,19 @@
   /* ---- Title key-visual (phase 1) ---- */
   .title{
     position:absolute; inset:0; z-index:12; opacity:0; overflow:hidden;
-    background:#EDE9F6; will-change:opacity,filter,transform;
+    background:#EDE9F6;
   }
   .title img{ width:100%; height:100%; object-fit:cover; display:block; }
-  /* soft light bloom for a fragile, glowing feel */
   .title::after{
     content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
-    background:radial-gradient(circle at 50% 46%, rgba(255,255,255,.22), transparent 62%);
-    mix-blend-mode:screen;
+    background:radial-gradient(circle at 50% 46%, rgba(255,255,255,.24), transparent 62%);
   }
   /* "ぽわーん" — a soft halo of light that gently blooms outward */
   .title__glow{
     position:absolute; left:50%; top:46%; z-index:2; pointer-events:none;
-    width:78vmax; height:78vmax; border-radius:50%;
+    width:46vmax; height:46vmax; border-radius:50%;
     transform:translate(-50%,-50%) scale(.35); opacity:0;
-    background:radial-gradient(circle, rgba(255,255,255,.6), rgba(217,136,168,.14) 42%, transparent 66%);
-    mix-blend-mode:screen; filter:blur(6px);
+    background:radial-gradient(circle, rgba(255,255,255,.55), rgba(217,136,168,.14) 44%, transparent 68%);
   }
   .stage.play .title__glow{animation:poff 3.6s ease-out .6s forwards;}
   @keyframes poff{
@@ -102,25 +89,22 @@
     38%{opacity:.7; transform:translate(-50%,-50%) scale(.95);}
     100%{opacity:0; transform:translate(-50%,-50%) scale(1.55);}
   }
+
   /* countdown key-visual — whole image visible, no cropping */
   .emblem{
     position:absolute; inset:0; overflow:hidden; opacity:0;
-    background:#FBFCFE;                 /* matches the image's light edges = seamless */
-    will-change:opacity,filter;
+    background:#FBFCFE;
   }
   .emblem img{
     width:100%; height:100%;
-    object-fit:contain;                 /* show the entire image, auto-fit any screen */
+    object-fit:contain;
     display:block; transform:scale(1.03);
   }
 
   /* ===== PLAY states (timeline) — slow, dreamy "bloom in" ===== */
-  /* 1) Title key-visual: bleeds in from a soft haze, drifts, melts away */
   .stage.play .title{animation:titleSeq 5.6s cubic-bezier(.4,0,.2,1) .5s forwards;}
-  /* 2) Countdown key-visual blooms in (from ~5.8s) */
   .stage.play .emblem{animation:kvIn 2.8s ease-out 5.8s forwards;}
-  .stage.play .emblem img{animation:kvZoom 6.4s ease-out 5.8s forwards;}   /* very gentle drift */
-  /* 3) White loader dissolves → hero (from ~8.8s) */
+  .stage.play .emblem img{animation:kvZoom 6.4s ease-out 5.8s forwards;}
   .stage.play .loader{animation:loaderOut 2.2s ease forwards; animation-delay:8.8s;}
 
   .stage.play .hero__sub{animation:fadeUpSoft 1.6s ease-out 9.1s forwards;}
@@ -128,25 +112,22 @@
   .stage.play .hero__year{animation:fadeUpSoft 1.6s ease-out 9.8s forwards;}
   .stage.play .hero__btn{animation:fadeUpSoft 1.6s ease-out 10.1s forwards;}
 
-  /* blur → focus, never fully opaque (slightly translucent = fragile) */
   @keyframes titleSeq{
-    0%{opacity:0; filter:blur(30px) brightness(1.1); transform:scale(1.09);}
-    30%{opacity:.9; filter:blur(0) brightness(1.02); transform:scale(1);}      /* comes into focus */
-    64%{opacity:.9; filter:blur(0) brightness(1.02); transform:scale(1.02);}   /* slow drift while holding */
-    100%{opacity:0; filter:blur(20px) brightness(1.07); transform:scale(1.05);}
+    0%{opacity:0; filter:blur(14px) brightness(1.08); transform:scale(1.07);}
+    30%{opacity:.9; filter:blur(0) brightness(1.02); transform:scale(1);}
+    64%{opacity:.9; filter:blur(0) brightness(1.02); transform:scale(1.02);}
+    100%{opacity:0; filter:blur(12px) brightness(1.06); transform:scale(1.05);}
   }
   @keyframes kvIn{
-    0%{opacity:0; filter:blur(20px);}
+    0%{opacity:0; filter:blur(12px);}
     100%{opacity:.95; filter:blur(0);}
   }
   @keyframes kvZoom{ 0%{transform:scale(1.06);} 100%{transform:scale(1);} }
   @keyframes loaderOut{0%{opacity:1;}100%{opacity:0; visibility:hidden;}}
   @keyframes fadeUpSoft{
-    0%{opacity:0; filter:blur(8px); transform:translateY(22px);}
+    0%{opacity:0; filter:blur(5px); transform:translateY(22px);}
     100%{opacity:1; filter:blur(0); transform:translateY(0);}
   }
-  @keyframes fadeUp{to{opacity:1; transform:translateY(0);}}
-  @keyframes fadeUpLogo{to{opacity:1; transform:translateX(-50%) translateY(0);}}
 
   .particle{
     position:absolute; border-radius:50%;
@@ -189,4 +170,63 @@
 
 <div class="hint">オープニング演出デモ</div>
 
-<div class="stage" id="st
+<div class="stage" id="stage">
+
+  <!-- Hero underneath -->
+  <div class="hero">
+    <p class="hero__sub">Miss Kindai University 2026</p>
+    <h1 class="hero__title">魅せる、私らしさ。</h1>
+    <p class="hero__year">— THE 2026 OFFICIAL CONTEST —</p>
+    <button class="hero__btn">ファイナリストを見る</button>
+  </div>
+
+  <!-- Loader overlay -->
+  <div class="loader">
+    <!-- phase 1: title key-visual -->
+    <div class="title">
+      <img src="opening_title.png" alt="KINDAI MISS CAMPUS CONTEST 2026 魅せる、私らしさ。">
+      <div class="title__glow"></div>
+    </div>
+    <!-- phase 2: countdown key-visual -->
+    <div class="emblem">
+      <img src="countdown.png" alt="ファイナリスト発表まで 10 Days Left 2026.09.14">
+    </div>
+  </div>
+
+</div>
+
+<div class="controls">
+  <button id="replay">▶ もう一度再生</button>
+</div>
+
+<script>
+  const stage = document.getElementById('stage');
+
+  function spawnParticles(){
+    stage.querySelectorAll('.particle').forEach(p=>p.remove());
+    for(let i=0;i<24;i++){
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = 2 + Math.random()*5;
+      p.style.width = p.style.height = size+'px';
+      p.style.left = (4 + Math.random()*92)+'%';
+      p.style.top  = (35 + Math.random()*60)+'%';
+      p.style.animationDuration = (6 + Math.random()*5)+'s';
+      p.style.animationDelay = (9.3 + Math.random()*2.5)+'s';
+      stage.appendChild(p);
+    }
+  }
+
+  function play(){
+    stage.classList.remove('play');
+    void stage.offsetWidth; // restart animations
+    spawnParticles();
+    stage.classList.add('play');
+  }
+
+  document.getElementById('replay').addEventListener('click', play);
+  // run as soon as the DOM is ready (script is at end of body) so it never stays blank
+  play();
+</script>
+</body>
+</html>
